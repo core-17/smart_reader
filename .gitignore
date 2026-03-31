@@ -1,0 +1,23 @@
+# OS & IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Node / Frontend
+node_modules/
+dist/
+.npm/
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# Database & Infrastructure
+data/
+minio_data/
+*.sqlite3
