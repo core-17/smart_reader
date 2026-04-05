@@ -21,3 +21,7 @@ env/
 data/
 minio_data/
 *.sqlite3
+
+
+#Docs
+docs/
