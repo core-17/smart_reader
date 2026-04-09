@@ -1,17 +1,19 @@
+<script setup lang="ts">
+import Reader from './components/Reader.vue'
+</script>
+
 <template>
   <main>
     <Reader />
   </main>
 </template>
 
-<script setup lang="ts">
-import Reader from './components/Reader.vue'
-</script>
-
 <style>
+/* Базовий скидання стилів для body */
 body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background-color: #f8fafc;
   margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #e5e7eb;
 }
 </style>

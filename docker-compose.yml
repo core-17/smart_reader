@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Реляційна база даних
+  # Relational database
   postgres:
     image: postgres:15-alpine
     container_name: smart_reader_db
@@ -15,7 +15,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # S3-сумісне об'єктне сховище
+  # S3-compatible object storage
   minio:
     image: minio/minio:latest
     container_name: smart_reader_storage
@@ -30,7 +30,7 @@ services:
     volumes:
       - minio_data:/data
 
-  # Reverse Proxy (закоментуємо поки що, бо конфіг ще не створено)
+  # Reverse proxy (commented out for now because the config has not been created yet)
   # nginx:
   #   ...
 
