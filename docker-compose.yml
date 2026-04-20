@@ -29,7 +29,11 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
-
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
   # Reverse proxy (commented out for now because the config has not been created yet)
   # nginx:
   #   ...
