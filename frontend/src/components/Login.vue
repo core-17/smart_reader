@@ -21,7 +21,7 @@ const onLogin = async () => {
     localStorage.setItem('auth_token', response.data.access_token)
     emit('loggedIn')
   } catch (err: any) {
-    error.value = 'Невірний логін або пароль'
+    error.value = 'Invalid email or password'
     console.error(err)
   } finally {
     isLoading.value = false
@@ -32,23 +32,23 @@ const onLogin = async () => {
 <template>
   <div class="auth-box">
     <div class="auth-card">
-      <h2>Вхід</h2>
+      <h2>Sign In</h2>
       <form @submit.prevent="onLogin">
         <div class="form-group">
           <label>Email</label>
-          <input v-model="email" type="email" required placeholder="Введіть email" />
+          <input v-model="email" type="email" required placeholder="Enter your email" />
         </div>
         <div class="form-group">
-          <label>Пароль</label>
-          <input v-model="password" type="password" required placeholder="Введіть пароль" />
+          <label>Password</label>
+          <input v-model="password" type="password" required placeholder="Enter your password" />
         </div>
         <p v-if="error" class="err-text">{{ error }}</p>
         <button type="submit" :disabled="isLoading" class="submit-btn">
-          {{ isLoading ? 'Вхід...' : 'Увійти' }}
+          {{ isLoading ? 'Signing in...' : 'Sign In' }}
         </button>
       </form>
       <p class="footer-text">
-        Немає акаунта? <a @click="emit('switchToRegister')">Створити акаунт</a>
+        Don't have an account? <a @click="emit('switchToRegister')">Create one</a>
       </p>
     </div>
   </div>

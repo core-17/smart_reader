@@ -4,7 +4,7 @@ import Reader from './components/Reader.vue'
 import Login from './components/Login.vue'
 import Registration from './components/Registration.vue'
 
-// Встановлюємо 'login' першим екраном
+// Set 'login' as the initial screen
 const currentView = ref<'login' | 'register' | 'reader'>('login')
 
 onMounted(() => {
@@ -36,7 +36,7 @@ const handleLogout = () => {
     <div v-else-if="currentView === 'reader'" class="reader-wrapper">
       <nav class="nav-bar">
         <span class="logo">Smart Reader</span>
-        <button @click="handleLogout" class="logout-btn">Вийти</button>
+        <button @click="handleLogout" class="logout-btn">Log Out</button>
       </nav>
       <Reader />
     </div>
@@ -44,7 +44,7 @@ const handleLogout = () => {
 </template>
 
 <style>
-/* Базові стилі для всього додатку */
+/* Base styles for the whole app */
 body { margin: 0; font-family: 'Inter', sans-serif; background: #f3f4f6; }
 .app-container { min-height: 100vh; display: flex; flex-direction: column; }
 .nav-bar { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; }

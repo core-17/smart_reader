@@ -26,6 +26,7 @@ services:
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
+      
       - "9001:9001"
     volumes:
       - minio_data:/data
@@ -34,10 +35,6 @@ services:
     restart: always
     ports:
       - 8080:8080
-  # Reverse proxy (commented out for now because the config has not been created yet)
-  # nginx:
-  #   ...
-
 volumes:
   postgres_data:
   minio_data:

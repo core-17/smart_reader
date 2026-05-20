@@ -7,16 +7,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 # Імпорти з ваших сервісів
-# Примітка: залишив 'databse', як ви просили, але рекомендую перейменувати папку на 'database'
+
+# Імпорти з ваших сервісів
 from services.databse import engine, Base, get_db
 from services.user import (
     User, UserCreate, UserOut, Token,
     DictionaryEntry, DictionaryEntryCreate,
     get_password_hash, verify_password, create_access_token, get_current_user
 )
-from services.local_api import DictionaryPromptPayload, LocalAPIService
-from services.cloud_api import CloudAPIService
 
+# Імпорти з об'єднаного файлу AI 
+from services.AI_api import DictionaryPromptPayload, LocalAPIService, CloudAPIService
 # --- Lifecycle (Керування життєвим циклом) ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,10 +43,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Ініціалізація сервісів
+# Ініціалізація AI сервісів
 local_ai_service = LocalAPIService()
 cloud_ai_service = CloudAPIService()
-
 
 # --- System Routes ---
 @app.get("/health", tags=["System"])
@@ -115,7 +115,7 @@ async def add_to_dictionary(
     current_user: User = Depends(get_current_user)
 ):
     new_entry = DictionaryEntry(
-        **entry.dict(),
+        **entry.model_dump(),  # Оновлено з dict() для повної підтримки Pydantic v2
         user_id=current_user.id
     )
     db.add(new_entry)

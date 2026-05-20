@@ -1,18 +1,21 @@
+from datetime import datetime, timedelta, timezone
+from typing import Annotated
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from pydantic import BaseModel, EmailStr, ConfigDict
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime, select
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel, EmailStr
-from passlib.context import CryptContext
-from jose import JWTError, jwt
-from datetime import datetime, timedelta, timezone
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
 
+# Враховуючи ваш специфічний імпорт 'databse'
 from services.databse import Base, get_db
 from services.config import settings
 
-# --- 1. Налаштування безпеки ---
+# --- 1. БЕЗПЕКА ТА AUTH КОНТЕКСТ ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
@@ -29,25 +32,7 @@ def create_access_token(data: dict):
     return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
-# --- 2. Схеми Pydantic (Валідація даних) ---
-class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
-
-class UserOut(BaseModel):
-    id: int
-    email: EmailStr
-    is_active: bool
-
-    class Config:
-        from_attributes = True
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-# --- 3. Моделі SQLAlchemy (Таблиці БД) ---
+# --- 2. SQLALCHEMY МОДЕЛІ (Таблиці) ---
 class User(Base):
     __tablename__ = "users"
 
@@ -56,8 +41,9 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
 
-    # Зв'язок зі словником (один користувач -> багато слів)
-    items = relationship("DictionaryEntry", back_populates="owner")
+    # Зв'язок: один користувач має багато слів у словнику
+    dictionary_entries = relationship("DictionaryEntry", back_populates="owner", cascade="all, delete-orphan")
+
 
 class DictionaryEntry(Base):
     __tablename__ = "dictionary_entries"
@@ -65,12 +51,28 @@ class DictionaryEntry(Base):
     id = Column(Integer, primary_key=True, index=True)
     word = Column(String, index=True, nullable=False)
     translation = Column(String, nullable=False)
-    context = Column(Text, nullable=True) # Текст з PDF
-    notes = Column(Text, nullable=True)   # Додаткові пояснення від ШІ
+    context = Column(Text, nullable=True)  # Текст з оригінального джерела (PDF тощо)
+    notes = Column(Text, nullable=True)    # Пояснення від AI
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     user_id = Column(Integer, ForeignKey("users.id"))
-    owner = relationship("User", back_populates="items")
+    owner = relationship("User", back_populates="dictionary_entries")
+
+
+# --- 3. PYDANTIC СХЕМИ (Валідація) ---
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    is_active: bool
+    model_config = ConfigDict(from_attributes=True)
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 class DictionaryEntryCreate(BaseModel):
     word: str
@@ -78,14 +80,20 @@ class DictionaryEntryCreate(BaseModel):
     context: str | None = None
     notes: str | None = None
 
-# --- 4. Залежність (Dependency) для отримання поточного юзера ---
+class DictionaryEntryOut(DictionaryEntryCreate):
+    id: int
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+# --- 4. ЗАЛЕЖНОСТІ (Dependencies) ---
 async def get_current_user(
-    db: AsyncSession = Depends(get_db), 
-    token: str = Depends(oauth2_scheme)
-):
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[AsyncSession, Depends(get_db)]
+) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Не вдалося перевірити облікові дані",
+        detail="Не вдалося перевірити токен доступу",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:

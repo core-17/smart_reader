@@ -16,10 +16,10 @@ const onRegister = async () => {
       email: email.value,
       password: password.value
     })
-    alert('Акаунт створено!')
+    alert('Account created successfully!')
     emit('switchToLogin')
   } catch (err: any) {
-    error.value = err.response?.data?.detail || 'Помилка реєстрації'
+    error.value = err.response?.data?.detail || 'Registration error'
   } finally {
     isLoading.value = false
   }
@@ -29,30 +29,30 @@ const onRegister = async () => {
 <template>
   <div class="auth-box">
     <div class="auth-card">
-      <h2>Реєстрація</h2>
+      <h2>Sign Up</h2>
       <form @submit.prevent="onRegister">
         <div class="form-group">
           <label>Email</label>
-          <input v-model="email" type="email" required placeholder="Введіть email" />
+          <input v-model="email" type="email" required placeholder="Enter your email" />
         </div>
         <div class="form-group">
-          <label>Пароль</label>
-          <input v-model="password" type="password" required placeholder="Придумайте пароль" />
+          <label>Password</label>
+          <input v-model="password" type="password" required placeholder="Create a password" />
         </div>
         <p v-if="error" class="err-text">{{ error }}</p>
         <button type="submit" :disabled="isLoading" class="submit-btn">
-          {{ isLoading ? 'Створення...' : 'Зареєструватися' }}
+          {{ isLoading ? 'Creating...' : 'Create Account' }}
         </button>
       </form>
       <p class="footer-text">
-        Вже маєте акаунт? <a @click="emit('switchToLogin')">Увійти</a>
+        Already have an account? <a @click="emit('switchToLogin')">Sign In</a>
       </p>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Стилі такі ж як у Login.vue */
+/* Styles are the same as in Login.vue */
 .auth-box { height: 100vh; display: flex; align-items: center; justify-content: center; }
 .auth-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 320px; }
 .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }

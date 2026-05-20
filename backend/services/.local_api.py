@@ -65,8 +65,8 @@ class LocalAPIService:
 Your goal is to analyze vocabulary within a specific reading context.
 
 ### CONSTRAINTS:
-1. Dictionary translation MUST be in 'UA'.
-2. Contextual explanation and hypothesis feedback MUST be in 'UA'.
+1. Dictionary translation MUST be in 'Polish'.
+2. Contextual explanation and hypothesis feedback MUST be in 'English'.
 3. Output format: Strictly JSON. No explanations outside the JSON object.
 
 ### JSON STRUCTURE:

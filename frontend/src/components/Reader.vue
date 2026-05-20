@@ -6,20 +6,20 @@ import axios from 'axios'
 
 const pdfSource = ref('/sample.pdf')
 
-// Стан поп-апу та даних
+// Popup and selection state
 const selectedText = ref('')
 const contextText = ref('')
 const hypothesis = ref('')
 const isPopupVisible = ref(false)
 const popupStyle = ref({ top: '0px', left: '0px' })
 
-// Стан запитів
+// Request state
 const isTranslating = ref(false)
 const isSaving = ref(false)
 const translationResult = ref<any>(null)
 const saveStatus = ref('')
 
-// Очищення стану
+// Reset popup state
 const closePopup = () => {
   isPopupVisible.value = false
   selectedText.value = ''
@@ -29,7 +29,7 @@ const closePopup = () => {
   saveStatus.value = ''
 }
 
-// Отримання токену
+// Build auth header from token
 const getAuthHeader = () => {
   const token = localStorage.getItem('auth_token')
   return { Authorization: `Bearer ${token}` }
@@ -57,7 +57,7 @@ const handleTextSelection = async () => {
       closePopup()
       selectedText.value = cleanText
 
-      // Пошук контексту (залишаємо вашу логіку з Reader.vue)
+      // Context extraction (keep existing Reader.vue logic)
       let context = cleanText
       let currentNode = selection.anchorNode
       if (currentNode) {
@@ -90,7 +90,7 @@ const handleTextSelection = async () => {
   }, 50)
 }
 
-// Запит до ШІ (з Bearer токеном)
+// AI request (with Bearer token)
 const submitTranslation = async () => {
   if (!selectedText.value) return
   isTranslating.value = true
@@ -100,8 +100,8 @@ const submitTranslation = async () => {
     context: contextText.value,
     hypothesis: hypothesis.value || null,
     word_lang: 'auto',
-    translation_lang: 'uk',
-    explanation_lang: 'uk'
+    translation_lang: 'en',
+    explanation_lang: 'en'
   }
 
   try {
@@ -113,17 +113,17 @@ const submitTranslation = async () => {
     translationResult.value = response.data
   } catch (error: any) {
     if (error.response?.status === 401) {
-      alert("Сесія вичерпана, будь ласка, увійдіть знову.")
+      alert('Session expired, please sign in again.')
       localStorage.removeItem('auth_token')
       location.reload()
     }
-    translationResult.value = { error: true, translation: 'Помилка авторизації або сервера.' }
+    translationResult.value = { error: true, translation: 'Authorization or server error.' }
   } finally {
     isTranslating.value = false
   }
 }
 
-// Збереження в базу даних (ендпоінт /dictionary/)
+// Save to database (/dictionary/ endpoint)
 const saveEntry = async () => {
   if (!translationResult.value) return
   isSaving.value = true
@@ -139,9 +139,9 @@ const saveEntry = async () => {
       },
       { headers: getAuthHeader() }
     )
-    saveStatus.value = 'Збережено ✅'
+    saveStatus.value = 'Saved ✅'
   } catch (err) {
-    saveStatus.value = 'Помилка збереження ❌'
+    saveStatus.value = 'Save failed ❌'
   } finally {
     isSaving.value = false
   }
@@ -174,26 +174,26 @@ onBeforeUnmount(() => {
       <div class="popup-header"><strong>{{ selectedText }}</strong></div>
 
       <div v-if="!translationResult && !isTranslating" class="popup-body">
-        <input v-model="hypothesis" type="text" placeholder="Припущення..." class="hypothesis-input" @keyup.enter="submitTranslation" />
-        <button class="action-btn" @click="submitTranslation">Перекласти через ШІ</button>
+        <input v-model="hypothesis" type="text" placeholder="Your hypothesis..." class="hypothesis-input" @keyup.enter="submitTranslation" />
+        <button class="action-btn" @click="submitTranslation">Translate with AI</button>
       </div>
 
       <div v-else-if="isTranslating" class="popup-body loading">
-        <span class="spinner"></span> Думаю...
+        <span class="spinner"></span> Thinking...
       </div>
 
       <div v-else-if="translationResult" class="popup-body result">
         <template v-if="!translationResult.error">
-          <div class="translation"><strong>Переклад:</strong> {{ translationResult.translation }}</div>
-          <div class="context-meaning"><strong>Пояснення:</strong> {{ translationResult.contextual_meaning }}</div>
+          <div class="translation"><strong>Translation:</strong> {{ translationResult.translation }}</div>
+          <div class="context-meaning"><strong>Explanation:</strong> {{ translationResult.contextual_meaning }}</div>
           
           <button v-if="!saveStatus" class="save-btn" @click="saveEntry" :disabled="isSaving">
-            {{ isSaving ? 'Зберігаю...' : 'Додати в словник' }}
+            {{ isSaving ? 'Saving...' : 'Add to dictionary' }}
           </button>
           <div v-else class="status-msg">{{ saveStatus }}</div>
         </template>
         <div v-else class="error-text">{{ translationResult.translation }}</div>
-        <button class="action-btn secondary" @click="closePopup">Закрити</button>
+        <button class="action-btn secondary" @click="closePopup">Close</button>
       </div>
     </div>
   </div>
