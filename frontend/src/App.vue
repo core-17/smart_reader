@@ -5,10 +5,6 @@ import Login from './components/Login.vue'
 import Registration from './components/Registration.vue'
 import axios from 'axios'
 
-<<<<<<< HEAD
-// Set 'login' as the initial screen
-=======
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
 const currentView = ref<'login' | 'register' | 'reader'>('login')
 const isSettingsOpen = ref(false)
 const aiProvider = ref('local')
@@ -69,14 +65,6 @@ const handleLoginSuccess = () => {
       @switchToLogin="currentView = 'login'"
     />
 
-<<<<<<< HEAD
-    <div v-else-if="currentView === 'reader'" class="reader-wrapper">
-      <nav class="nav-bar">
-        <span class="logo">Smart Reader</span>
-        <button @click="handleLogout" class="logout-btn">Log Out</button>
-      </nav>
-      <Reader />
-=======
     <div v-else-if="currentView === 'reader'" class="main-layout">
       <header class="top-header">
         <span class="logo">SMART<span class="accent">READER</span></span>
@@ -123,20 +111,11 @@ const handleLoginSuccess = () => {
           <button @click="isSettingsOpen = false" class="close-modal-btn">Зберегти налаштування</button>
         </div>
       </div>
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
     </div>
   </div>
 </template>
 
 <style>
-<<<<<<< HEAD
-/* Base styles for the whole app */
-body { margin: 0; font-family: 'Inter', sans-serif; background: #f3f4f6; }
-.app-container { min-height: 100vh; display: flex; flex-direction: column; }
-.nav-bar { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; }
-.logo { font-weight: bold; color: #2563eb; }
-.logout-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-=======
 /* Глобальне скидання стилів для запобігання скролу вікна */
 html, body {
   margin: 0;
@@ -154,7 +133,6 @@ html, body {
   overflow: hidden;
 }
 
-/* Наша головна сітка додатку */
 /* Наша головна сітка додатку */
 .main-layout {
   display: flex;
@@ -266,5 +244,4 @@ html, body {
   margin-top: 20px;
 }
 .close-modal-btn:hover { background: #1d4ed8; }
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
 </style>

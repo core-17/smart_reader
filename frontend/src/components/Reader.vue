@@ -90,10 +90,6 @@ const handleTextSelection = async () => {
   }, 50)
 }
 
-<<<<<<< HEAD
-// AI request (with Bearer token)
-=======
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
 const submitTranslation = async () => {
   if (!selectedText.value) return
   isTranslating.value = true
@@ -103,17 +99,11 @@ const submitTranslation = async () => {
     context: contextText.value,
     hypothesis: hypothesis.value || null,
     word_lang: 'auto',
-<<<<<<< HEAD
-    translation_lang: 'en',
-    explanation_lang: 'en'
-=======
-    translation_lang: 'uk', // Зміни на потрібну мову перекладу
+    translation_lang: 'uk', 
     explanation_lang: 'uk'
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
   }
 
   try {
-    // ТУТ МИ МІНЯЄМО НА НАШ НОВИЙ СМАРТ-МАРШРУТ
     const response = await axios.post(
       'http://localhost:8000/ai/dictionary', 
       payload,
@@ -122,11 +112,7 @@ const submitTranslation = async () => {
     translationResult.value = response.data
   } catch (error: any) {
     if (error.response?.status === 401) {
-<<<<<<< HEAD
-      alert('Session expired, please sign in again.')
-=======
       alert('Сесія завершилась, будь ласка, авторизуйтесь знову.')
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
       localStorage.removeItem('auth_token')
       location.reload()
     }
