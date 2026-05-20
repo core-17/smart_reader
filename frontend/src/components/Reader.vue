@@ -90,7 +90,10 @@ const handleTextSelection = async () => {
   }, 50)
 }
 
+<<<<<<< HEAD
 // AI request (with Bearer token)
+=======
+>>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
 const submitTranslation = async () => {
   if (!selectedText.value) return
   isTranslating.value = true
@@ -100,20 +103,30 @@ const submitTranslation = async () => {
     context: contextText.value,
     hypothesis: hypothesis.value || null,
     word_lang: 'auto',
+<<<<<<< HEAD
     translation_lang: 'en',
     explanation_lang: 'en'
+=======
+    translation_lang: 'uk', // Зміни на потрібну мову перекладу
+    explanation_lang: 'uk'
+>>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
   }
 
   try {
+    // ТУТ МИ МІНЯЄМО НА НАШ НОВИЙ СМАРТ-МАРШРУТ
     const response = await axios.post(
-      'http://localhost:8000/ai/local/dictionary', 
+      'http://localhost:8000/ai/dictionary', 
       payload,
       { headers: getAuthHeader() }
     )
     translationResult.value = response.data
   } catch (error: any) {
     if (error.response?.status === 401) {
+<<<<<<< HEAD
       alert('Session expired, please sign in again.')
+=======
+      alert('Сесія завершилась, будь ласка, авторизуйтесь знову.')
+>>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
       localStorage.removeItem('auth_token')
       location.reload()
     }
@@ -168,7 +181,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="reader-container">
-    <VuePdfApp :pdf="pdfSource" theme="light" />
+    <VuePdfApp :pdf="pdfSource" theme="light" :config="{ sidebarViewOnLoad: 1 }" />
 
     <div v-if="isPopupVisible" class="selection-popup" :style="popupStyle" @mousedown.stop>
       <div class="popup-header"><strong>{{ selectedText }}</strong></div>
@@ -200,11 +213,54 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.reader-container { width: 100vw; height: 100vh; position: relative; }
+/* Надійна Flex-сітка без абсолютного позиціювання */
+.reader-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Змушуємо вбудований плагін розтягнутися */
+:deep(.pdf-app) {
+  flex: 1;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ==========================================
+   ЖОРСТКЕ БЛОКУВАННЯ ПАНЕЛІ PDF.JS
+   ========================================== */
+/* Ховаємо кнопку "Гамбургер" (перемикач панелі) */
+:deep(#sidebarToggle) {
+  display: none !important;
+}
+
+/* Повністю ховаємо контейнер бокової панелі */
+:deep(#sidebarContainer) {
+  display: none !important;
+  width: 0 !important;
+}
+
+/* Забороняємо головному контейнеру зсуватися вправо */
+:deep(#outerContainer.sidebarOpen #mainContainer) {
+  left: 0 !important;
+  min-width: 100% !important;
+  transition: none !important;
+}
+
+/* ==========================================
+   СТИЛІ ПОП-АПУ ТА ІНШЕ
+   ========================================== */
 .selection-popup {
-  position: absolute; transform: translateX(-50%); z-index: 9999;
-  background: white; border-radius: 12px; width: 300px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 9999;
+  background: white;
+  border-radius: 12px;
+  width: 300px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  border: 1px solid #e5e7eb;
 }
 .popup-header { background: #f9fafb; padding: 12px; border-bottom: 1px solid #eee; border-radius: 12px 12px 0 0; }
 .popup-body { padding: 15px; display: flex; flex-direction: column; gap: 10px; }

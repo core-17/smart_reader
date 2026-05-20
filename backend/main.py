@@ -6,35 +6,41 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+<<<<<<< HEAD
 # Імпорти з ваших сервісів
 
 # Імпорти з ваших сервісів
+=======
+>>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
 from services.databse import engine, Base, get_db
 from services.user import (
     User, UserCreate, UserOut, Token,
-    DictionaryEntry, DictionaryEntryCreate,
+    DictionaryEntry, DictionaryEntryCreate, UserSettings, UserSettingsUpdate, UserSettingsOut,
     get_password_hash, verify_password, create_access_token, get_current_user
 )
+<<<<<<< HEAD
 
 # Імпорти з об'єднаного файлу AI 
 from services.AI_api import DictionaryPromptPayload, LocalAPIService, CloudAPIService
 # --- Lifecycle (Керування життєвим циклом) ---
+=======
+from services.AI_api import DictionaryPromptPayload, LocalAPIService, CloudAPIService
+
+>>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Створення таблиць при запуску
+    # Автоматичне створення нових таблиць (включаючи user_settings)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
-    # Тут можна додати логіку закриття з'єднань, якщо потрібно
 
 app = FastAPI(
     title="Smart Reader API",
-    version="0.1.0",
-    description="Backend-архітектура для обробки текстового контексту через ШІ",
+    version="0.2.0",
+    description="Backend-архітектура з вибором AI провайдера через базу даних",
     lifespan=lifespan
 )
 
-# --- Middleware ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -47,7 +53,10 @@ app.add_middleware(
 local_ai_service = LocalAPIService()
 cloud_ai_service = CloudAPIService()
 
+<<<<<<< HEAD
 # --- System Routes ---
+=======
+>>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
 @app.get("/health", tags=["System"])
 async def health_check():
     return {"status": "ok", "message": "Backend is running flawlessly"}
@@ -68,6 +77,12 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         hashed_password=get_password_hash(user_data.password)
     )
     db.add(new_user)
+    await db.flush() # Отримуємо id користувача перед комітом
+
+    # Створюємо дефолтні налаштування для нового користувача (за замовчуванням локальний ШІ)
+    default_settings = UserSettings(user_id=new_user.id, ai_provider="local")
+    db.add(default_settings)
+    
     await db.commit()
     await db.refresh(new_user)
     return new_user
@@ -91,20 +106,52 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# --- AI Integration Routes ---
-@app.post("/ai/local/dictionary", tags=["AI Integration"])
-async def local_dictionary_explain(payload: DictionaryPromptPayload):
-    try:
-        return await local_ai_service.explain_word(payload)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Local AI Error: {str(exc)}")
+# --- User Settings Routes ---
+@app.get("/user/settings", response_model=UserSettingsOut, tags=["User Settings"])
+async def get_user_settings(current_user: User = Depends(get_current_user)):
+    # Якщо з якихось причин налаштувань немає, повернемо дефолт
+    if not current_user.settings:
+        return {"ai_provider": "local"}
+    return current_user.settings
 
-@app.post("/ai/cloud/dictionary", tags=["AI Integration"])
-async def cloud_dictionary_explain(payload: DictionaryPromptPayload):
-    try:
-        return await cloud_ai_service.explain_word(payload)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Cloud AI Error: {str(exc)}")
+@app.put("/user/settings", response_model=UserSettingsOut, tags=["User Settings"])
+async def update_user_settings(
+    settings_data: UserSettingsUpdate, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if settings_data.ai_provider not in ["local", "cloud"]:
+        raise HTTPException(status_code=400, detail="ai_provider має бути або 'local', або 'cloud'")
+    
+    if not current_user.settings:
+        current_user.settings = UserSettings(user_id=current_user.id, ai_provider=settings_data.ai_provider)
+        db.add(current_user.settings)
+    else:
+        current_user.settings.ai_provider = settings_data.ai_provider
+        
+    await db.commit()
+    return current_user.settings
+
+
+# --- ОБ'ЄДНАНИЙ AI ЕНДПОІНТ ---
+@app.post("/ai/dictionary", tags=["AI Integration"])
+async def explain_word_smart(
+    payload: DictionaryPromptPayload,
+    current_user: User = Depends(get_current_user)
+):
+    # Визначаємо, який провайдер обраний у користувача
+    provider = current_user.settings.ai_provider if current_user.settings else "local"
+    
+    if provider == "local":
+        try:
+            return await local_ai_service.explain_word(payload)
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Local AI Error: {str(exc)}")
+    else:
+        try:
+            return await cloud_ai_service.explain_word(payload)
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Cloud AI Error: {str(exc)}")
 
 
 # --- Dictionary Routes ---
@@ -115,7 +162,11 @@ async def add_to_dictionary(
     current_user: User = Depends(get_current_user)
 ):
     new_entry = DictionaryEntry(
+<<<<<<< HEAD
         **entry.model_dump(),  # Оновлено з dict() для повної підтримки Pydantic v2
+=======
+        **entry.model_dump(),
+>>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
         user_id=current_user.id
     )
     db.add(new_entry)
