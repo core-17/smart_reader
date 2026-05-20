@@ -5,11 +5,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-<<<<<<< HEAD
 from pydantic import BaseModel, EmailStr, ConfigDict
-=======
 from pydantic import BaseModel, EmailStr, ConfigDict, Field
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime, select
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -45,10 +42,8 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
 
-<<<<<<< HEAD
     # Зв'язок: один користувач має багато слів у словнику
     dictionary_entries = relationship("DictionaryEntry", back_populates="owner", cascade="all, delete-orphan")
-=======
     # Зв'язки
     dictionary_entries = relationship("DictionaryEntry", back_populates="owner", cascade="all, delete-orphan")
     settings = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
@@ -64,7 +59,6 @@ class UserSettings(Base):
     ai_provider = Column(String, default="local", nullable=False) 
 
     user = relationship("User", back_populates="settings")
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
 
 
 class DictionaryEntry(Base):
@@ -73,13 +67,10 @@ class DictionaryEntry(Base):
     id = Column(Integer, primary_key=True, index=True)
     word = Column(String, index=True, nullable=False)
     translation = Column(String, nullable=False)
-<<<<<<< HEAD
     context = Column(Text, nullable=True)  # Текст з оригінального джерела (PDF тощо)
     notes = Column(Text, nullable=True)    # Пояснення від AI
-=======
     context = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     user_id = Column(Integer, ForeignKey("users.id"))
@@ -100,8 +91,6 @@ class UserOut(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-<<<<<<< HEAD
-=======
 
 class UserSettingsUpdate(BaseModel):
     ai_provider: str = Field(..., description="Тип провайдера: 'local' або 'cloud'")
@@ -109,7 +98,6 @@ class UserSettingsUpdate(BaseModel):
 class UserSettingsOut(BaseModel):
     ai_provider: str
     model_config = ConfigDict(from_attributes=True)
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
 
 class DictionaryEntryCreate(BaseModel):
     word: str

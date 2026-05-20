@@ -6,27 +6,27 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-<<<<<<< HEAD
+
 # Імпорти з ваших сервісів
 
 # Імпорти з ваших сервісів
-=======
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
+
+
 from services.databse import engine, Base, get_db
 from services.user import (
     User, UserCreate, UserOut, Token,
     DictionaryEntry, DictionaryEntryCreate, UserSettings, UserSettingsUpdate, UserSettingsOut,
     get_password_hash, verify_password, create_access_token, get_current_user
 )
-<<<<<<< HEAD
+
 
 # Імпорти з об'єднаного файлу AI 
 from services.AI_api import DictionaryPromptPayload, LocalAPIService, CloudAPIService
 # --- Lifecycle (Керування життєвим циклом) ---
-=======
+
 from services.AI_api import DictionaryPromptPayload, LocalAPIService, CloudAPIService
 
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Автоматичне створення нових таблиць (включаючи user_settings)
@@ -53,10 +53,10 @@ app.add_middleware(
 local_ai_service = LocalAPIService()
 cloud_ai_service = CloudAPIService()
 
-<<<<<<< HEAD
+
 # --- System Routes ---
-=======
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
+
+
 @app.get("/health", tags=["System"])
 async def health_check():
     return {"status": "ok", "message": "Backend is running flawlessly"}
@@ -162,11 +162,11 @@ async def add_to_dictionary(
     current_user: User = Depends(get_current_user)
 ):
     new_entry = DictionaryEntry(
-<<<<<<< HEAD
+
         **entry.model_dump(),  # Оновлено з dict() для повної підтримки Pydantic v2
-=======
+
         **entry.model_dump(),
->>>>>>> a90816d (update backund and fix ui issues, also remove cloud api and add new model for local ai)
+
         user_id=current_user.id
     )
     db.add(new_entry)
