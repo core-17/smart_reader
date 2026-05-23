@@ -8,11 +8,24 @@ import axios from 'axios'
 const currentView = ref<'login' | 'register' | 'reader'>('login')
 const isSettingsOpen = ref(false)
 const aiProvider = ref('local')
-const userEmail = ref('user@example.com') // Можна динамічно брати з токена/БД
+const userEmail = ref('') // Тепер пусте за замовчуванням
+
+// Функція для декодування JWT та діставання email
+const extractUserFromToken = (token: string) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    if (payload.sub) {
+      userEmail.value = payload.sub
+    }
+  } catch (e) {
+    console.error("Не вдалося розкодувати токен")
+  }
+}
 
 onMounted(async () => {
   const token = localStorage.getItem('auth_token')
   if (token) {
+    extractUserFromToken(token)
     currentView.value = 'reader'
     fetchSettings()
   }
@@ -43,15 +56,18 @@ const updateProvider = async (provider: string) => {
 
 const handleLogout = () => {
   localStorage.removeItem('auth_token')
+  userEmail.value = ''
   currentView.value = 'login'
 }
 
 const handleLoginSuccess = () => {
+  const token = localStorage.getItem('auth_token')
+  if (token) extractUserFromToken(token)
+  
   currentView.value = 'reader'
   fetchSettings()
 }
 </script>
-
 <template>
   <div class="app-container">
     <Login 

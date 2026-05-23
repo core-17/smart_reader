@@ -38,15 +38,10 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False) # Додано поле нікнейму
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
-
-    # Зв'язок: один користувач має багато слів у словнику
-    dictionary_entries = relationship("DictionaryEntry", back_populates="owner", cascade="all, delete-orphan")
-    # Зв'язки
-    dictionary_entries = relationship("DictionaryEntry", back_populates="owner", cascade="all, delete-orphan")
-    settings = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 
 class UserSettings(Base):
@@ -79,11 +74,13 @@ class DictionaryEntry(Base):
 
 # --- 3. PYDANTIC СХЕМИ (Валідація) ---
 class UserCreate(BaseModel):
+    username: str # Додано поле нікнейму
     email: EmailStr
     password: str
 
 class UserOut(BaseModel):
     id: int
+    username: str # Додано поле нікнейму
     email: EmailStr
     is_active: bool
     model_config = ConfigDict(from_attributes=True)

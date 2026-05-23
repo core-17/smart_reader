@@ -4,28 +4,16 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
-
-# Імпорти з ваших сервісів
-
-# Імпорти з ваших сервісів
-
-
+# Імпорти з локальних сервісів
 from services.databse import engine, Base, get_db
 from services.user import (
     User, UserCreate, UserOut, Token,
     DictionaryEntry, DictionaryEntryCreate, UserSettings, UserSettingsUpdate, UserSettingsOut,
     get_password_hash, verify_password, create_access_token, get_current_user
 )
-
-
-# Імпорти з об'єднаного файлу AI 
 from services.AI_api import DictionaryPromptPayload, LocalAPIService, CloudAPIService
-# --- Lifecycle (Керування життєвим циклом) ---
-
-from services.AI_api import DictionaryPromptPayload, LocalAPIService, CloudAPIService
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -55,8 +43,6 @@ cloud_ai_service = CloudAPIService()
 
 
 # --- System Routes ---
-
-
 @app.get("/health", tags=["System"])
 async def health_check():
     return {"status": "ok", "message": "Backend is running flawlessly"}
@@ -65,19 +51,36 @@ async def health_check():
 # --- Auth Routes ---
 @app.post("/auth/register", response_model=UserOut, tags=["Auth"], status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == user_data.email))
-    if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Цей Email вже зареєстровано"
+    # Перевіряємо, чи існує користувач з таким email АБО username
+    stmt = select(User).where(
+        or_(
+            User.email == user_data.email,
+            User.username == user_data.username
         )
+    )
+    result = await db.execute(stmt)
+    existing_user = result.scalar_one_or_none()
 
+    if existing_user:
+        if existing_user.email == user_data.email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="Цей Email вже зареєстровано"
+            )
+        if existing_user.username == user_data.username:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="Цей Нікнейм вже зайнято"
+            )
+
+    # Створюємо користувача з урахуванням поля username
     new_user = User(
+        username=user_data.username,
         email=user_data.email, 
         hashed_password=get_password_hash(user_data.password)
     )
     db.add(new_user)
-    await db.flush() # Отримуємо id користувача перед комітом
+    await db.flush()  # Отримуємо id користувача перед комітом
 
     # Створюємо дефолтні налаштування для нового користувача (за замовчуванням локальний ШІ)
     default_settings = UserSettings(user_id=new_user.id, ai_provider="local")
@@ -109,7 +112,6 @@ async def login(
 # --- User Settings Routes ---
 @app.get("/user/settings", response_model=UserSettingsOut, tags=["User Settings"])
 async def get_user_settings(current_user: User = Depends(get_current_user)):
-    # Якщо з якихось причин налаштувань немає, повернемо дефолт
     if not current_user.settings:
         return {"ai_provider": "local"}
     return current_user.settings
@@ -139,7 +141,6 @@ async def explain_word_smart(
     payload: DictionaryPromptPayload,
     current_user: User = Depends(get_current_user)
 ):
-    # Визначаємо, який провайдер обраний у користувача
     provider = current_user.settings.ai_provider if current_user.settings else "local"
     
     if provider == "local":
@@ -162,11 +163,7 @@ async def add_to_dictionary(
     current_user: User = Depends(get_current_user)
 ):
     new_entry = DictionaryEntry(
-
-        **entry.model_dump(),  # Оновлено з dict() для повної підтримки Pydantic v2
-
         **entry.model_dump(),
-
         user_id=current_user.id
     )
     db.add(new_entry)
