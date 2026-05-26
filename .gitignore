@@ -1,6 +1,6 @@
 tree.txt
 docs
-
+*.pdf
 # OS & IDE
 .DS_Store
 .idea/
