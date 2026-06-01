@@ -17,7 +17,7 @@ const onLogin = async () => {
   formData.append('password', password.value)
 
   try {
-    const response = await axios.post('http://localhost:8000/auth/login', formData)
+    const response = await axios.post(`${API_URL}/auth/login`, formData)
     localStorage.setItem('auth_token', response.data.access_token)
     emit('loggedIn')
   } catch (err: any) {
@@ -27,6 +27,8 @@ const onLogin = async () => {
     isLoading.value = false
   }
 }
+import { API_URL } from '../config'
+
 </script>
 
 <template>

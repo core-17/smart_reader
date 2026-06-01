@@ -4,25 +4,26 @@ import Reader from './components/Reader.vue'
 import Login from './components/Login.vue'
 import Registration from './components/Registration.vue'
 import axios from 'axios'
+import { API_URL } from './config'
 
 const currentView = ref<'login' | 'register' | 'reader'>('login')
 const isSettingsOpen = ref(false)
-const isSidebarOpen = ref(true) // Стан бічної панелі
-const isUserMenuOpen = ref(false) // Стан випадаючого меню користувача
+const isSidebarOpen = ref(true) // Sidebar open state
+const isUserMenuOpen = ref(false) // User dropdown open state
 const aiProvider = ref('local')
 const userEmail = ref('')
 const username = ref('')
 
-// Декодування JWT
+// Decode JWT
 const extractUserFromToken = (token: string) => {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]))
     userEmail.value = payload.sub || ''
-    // Якщо в токені є username, можна витягнути (залежить від бекенда)
-    // Поки що використовуємо email як ідентифікатор
+    // If the token contains a username field, extract it (depends on backend)
+    // For now use the email local-part as an identifier
     username.value = userEmail.value.split('@')[0]
   } catch (e) {
-    console.error("Помилка декодування токена")
+    console.error("Token decode error")
   }
 }
 
@@ -40,7 +41,7 @@ onUnmounted(() => {
   window.removeEventListener('click', closeMenus)
 })
 
-// Закриття меню при кліку поза ними
+// Close menus when clicking outside
 const closeMenus = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   if (!target.closest('.user-profile-area')) {
@@ -50,24 +51,24 @@ const closeMenus = (e: MouseEvent) => {
 
 const fetchSettings = async () => {
   try {
-    const res = await axios.get('http://localhost:8000/user/settings', {
+    const res = await axios.get(`${API_URL}/user/settings`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
     })
     aiProvider.value = res.data.ai_provider
   } catch (e) {
-    console.error("Помилка налаштувань:", e)
+    console.error("Settings error:", e)
   }
 }
 
 const updateProvider = async (provider: string) => {
   aiProvider.value = provider
   try {
-    await axios.put('http://localhost:8000/user/settings', 
+    await axios.put(`${API_URL}/user/settings`, 
       { ai_provider: provider },
       { headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` } }
     )
   } catch (e) {
-    console.error("Збереження не вдалося:", e)
+    console.error("Save failed:", e)
   }
 }
 
@@ -111,9 +112,9 @@ const handleLoginSuccess = () => {
                 <p class="email-label">{{ userEmail }}</p>
               </div>
               <hr />
-              <button @click="handleLogout" class="dropdown-item logout">
+                <button @click="handleLogout" class="dropdown-item logout">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                Вийти
+                Logout
               </button>
             </div>
           </div>
@@ -124,8 +125,8 @@ const handleLoginSuccess = () => {
         <aside :class="['side-panel', { 'is-closed': !isSidebarOpen }]">
           <div class="spacer"></div>
           
-          <div class="bottom-actions">
-            <button @click="isSettingsOpen = true" class="icon-btn" title="Налаштування AI">
+            <div class="bottom-actions">
+            <button @click="isSettingsOpen = true" class="icon-btn" title="AI Settings">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </button>
           </div>
@@ -138,15 +139,15 @@ const handleLoginSuccess = () => {
 
       <div v-if="isSettingsOpen" class="modal-overlay" @click.self="isSettingsOpen = false">
         <div class="settings-modal">
-          <h3>Налаштування системи</h3>
+          <h3>System Settings</h3>
           <div class="form-group">
-            <label>AI провайдер:</label>
+            <label>AI provider:</label>
             <select :value="aiProvider" @change="updateProvider(($event.target as HTMLSelectElement).value)" class="ai-select">
-              <option value="local">Локальний (Ollama)</option>
-              <option value="cloud">Хмарний (Gemini)</option>
+              <option value="local">Local (Ollama)</option>
+              <option value="cloud">Cloud (Gemini)</option>
             </select>
           </div>
-          <button @click="isSettingsOpen = false" class="close-modal-btn">Закрити</button>
+          <button @click="isSettingsOpen = false" class="close-modal-btn">Close</button>
         </div>
       </div>
     </div>

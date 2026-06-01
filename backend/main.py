@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 
-# Імпорти з локальних сервісів
+# Imports from local services
 from services.databse import engine, Base, get_db
 from services.user import (
     User, UserCreate, UserOut, Token,
@@ -17,7 +17,7 @@ from services.AI_api import DictionaryPromptPayload, LocalAPIService, CloudAPISe
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Автоматичне створення нових таблиць (включаючи user_settings)
+    # Automatically create any missing tables (including user_settings)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Smart Reader API",
     version="0.2.0",
-    description="Backend-архітектура з вибором AI провайдера через базу даних",
+    description="Backend architecture with a switchable AI provider stored in user settings",
     lifespan=lifespan
 )
 
@@ -37,7 +37,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Ініціалізація AI сервісів
+# Initialize AI service clients
 local_ai_service = LocalAPIService()
 cloud_ai_service = CloudAPIService()
 
@@ -45,13 +45,19 @@ cloud_ai_service = CloudAPIService()
 # --- System Routes ---
 @app.get("/health", tags=["System"])
 async def health_check():
-    return {"status": "ok", "message": "Backend is running flawlessly"}
+    """Basic health check endpoint."""
+    return {"status": "ok", "message": "Backend is running"}
 
 
 # --- Auth Routes ---
 @app.post("/auth/register", response_model=UserOut, tags=["Auth"], status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
-    # Перевіряємо, чи існує користувач з таким email АБО username
+    """Register a new user and create default settings.
+
+    Ensures email and username are unique, creates the user, and
+    initializes default user settings (default AI provider: local).
+    """
+    # Check if a user with the same email OR username already exists
     stmt = select(User).where(
         or_(
             User.email == user_data.email,
@@ -64,25 +70,25 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     if existing_user:
         if existing_user.email == user_data.email:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
-                detail="Цей Email вже зареєстровано"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This email is already registered"
             )
         if existing_user.username == user_data.username:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
-                detail="Цей Нікнейм вже зайнято"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This username is already taken"
             )
 
-    # Створюємо користувача з урахуванням поля username
+    # Create the user record including the username
     new_user = User(
         username=user_data.username,
         email=user_data.email, 
         hashed_password=get_password_hash(user_data.password)
     )
     db.add(new_user)
-    await db.flush()  # Отримуємо id користувача перед комітом
+    await db.flush()  # Obtain the new user's id before commit
 
-    # Створюємо дефолтні налаштування для нового користувача (за замовчуванням локальний ШІ)
+    # Create default settings for the new user (default AI provider: local)
     default_settings = UserSettings(user_id=new_user.id, ai_provider="local")
     db.add(default_settings)
     
@@ -92,7 +98,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @app.post("/auth/login", response_model=Token, tags=["Auth"])
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), 
+    form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(User).where(User.email == form_data.username))
@@ -101,7 +107,7 @@ async def login(
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Невірний email або пароль",
+            detail="Invalid email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -112,6 +118,7 @@ async def login(
 # --- User Settings Routes ---
 @app.get("/user/settings", response_model=UserSettingsOut, tags=["User Settings"])
 async def get_user_settings(current_user: User = Depends(get_current_user)):
+    """Return the current user's settings. Defaults to local provider."""
     if not current_user.settings:
         return {"ai_provider": "local"}
     return current_user.settings
@@ -123,7 +130,7 @@ async def update_user_settings(
     current_user: User = Depends(get_current_user)
 ):
     if settings_data.ai_provider not in ["local", "cloud"]:
-        raise HTTPException(status_code=400, detail="ai_provider має бути або 'local', або 'cloud'")
+        raise HTTPException(status_code=400, detail="ai_provider must be either 'local' or 'cloud'")
     
     if not current_user.settings:
         current_user.settings = UserSettings(user_id=current_user.id, ai_provider=settings_data.ai_provider)
@@ -135,7 +142,7 @@ async def update_user_settings(
     return current_user.settings
 
 
-# --- ОБ'ЄДНАНИЙ AI ЕНДПОІНТ ---
+# --- Unified AI endpoint ---
 @app.post("/ai/dictionary", tags=["AI Integration"])
 async def explain_word_smart(
     payload: DictionaryPromptPayload,

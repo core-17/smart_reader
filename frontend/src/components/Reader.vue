@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { API_URL } from '../config'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import VuePdfApp from 'vue3-pdf-app'
 import 'vue3-pdf-app/dist/icons/main.css'
@@ -105,14 +106,14 @@ const submitTranslation = async () => {
 
   try {
     const response = await axios.post(
-      'http://localhost:8000/ai/dictionary', 
+      `${API_URL}/ai/dictionary`, 
       payload,
       { headers: getAuthHeader() }
     )
     translationResult.value = response.data
   } catch (error: any) {
     if (error.response?.status === 401) {
-      alert('Сесія завершилась, будь ласка, авторизуйтесь знову.')
+      alert('Session expired, please log in again.')
       localStorage.removeItem('auth_token')
       location.reload()
     }
@@ -129,7 +130,7 @@ const saveEntry = async () => {
   
   try {
     await axios.post(
-      'http://localhost:8000/dictionary/', 
+      `${API_URL}/dictionary/`, 
       {
         word: selectedText.value,
         translation: translationResult.value.translation,
@@ -199,7 +200,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* Надійна Flex-сітка без абсолютного позиціювання */
+/* Robust flex layout without absolute positioning */
 .reader-container {
   width: 100%;
   height: 100%;
@@ -207,7 +208,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 
-/* Змушуємо вбудований плагін розтягнутися */
+/* Force the embedded PDF plugin to stretch */
 :deep(.pdf-app) {
   flex: 1;
   width: 100% !important;
@@ -215,20 +216,20 @@ onBeforeUnmount(() => {
 }
 
 /* ==========================================
-   ЖОРСТКЕ БЛОКУВАННЯ ПАНЕЛІ PDF.JS
-   ========================================== */
-/* Ховаємо кнопку "Гамбургер" (перемикач панелі) */
+  FORCE-HIDE PDF.JS SIDEBAR
+  ========================================== */
+/* Hide the hamburger (sidebar toggle) button */
 :deep(#sidebarToggle) {
   display: none !important;
 }
 
-/* Повністю ховаємо контейнер бокової панелі */
+/* Completely hide the sidebar container */
 :deep(#sidebarContainer) {
   display: none !important;
   width: 0 !important;
 }
 
-/* Забороняємо головному контейнеру зсуватися вправо */
+/* Prevent main container from shifting right */
 :deep(#outerContainer.sidebarOpen #mainContainer) {
   left: 0 !important;
   min-width: 100% !important;
@@ -236,8 +237,8 @@ onBeforeUnmount(() => {
 }
 
 /* ==========================================
-   СТИЛІ ПОП-АПУ ТА ІНШЕ
-   ========================================== */
+  POPUP STYLES AND OTHERS
+  ========================================== */
 .selection-popup {
   position: absolute;
   transform: translateX(-50%);

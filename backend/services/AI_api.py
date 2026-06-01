@@ -7,54 +7,53 @@ from pydantic import BaseModel, Field, ValidationError
 from typing import Optional
 from fastapi import HTTPException
 
-# Новий офіційний SDK від Google
+# New official Google SDK
 from google import genai
 from google.genai import types
 
-# Визначення шляху до .env файлу та завантаження змінних
+# Locate project .env file and load environment variables
 env_path = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
-# --- DTO для валідації вхідних запитів ---
+# --- DTOs for validating incoming requests ---
 class DictionaryPromptPayload(BaseModel):
-    word: str = Field(..., description="Обране слово або фраза")
-    context: str = Field(..., description="Контекст (речення або абзац)")
-    hypothesis: Optional[str] = Field(None, description="Гіпотеза користувача про значення")
-    
+    word: str = Field(..., description="Target word or phrase to analyze")
+    context: str = Field(..., description="Context sentence or paragraph")
+    hypothesis: Optional[str] = Field(None, description="User-provided hypothesis about the meaning")
+
     word_lang: str = Field(
-        default="auto", 
-        description="Мова оригіналу (наприклад, 'en', 'de')"
+        default="auto",
+        description="Language of the source word (e.g. 'en', 'de')"
     )
     translation_lang: str = Field(
-        default="uk", 
-        description="Мова перекладу"
+        default="uk",
+        description="Language for the dictionary translation"
     )
     explanation_lang: str = Field(
-        default="uk", 
-        description="Мова пояснення та фідбеку"
+        default="uk",
+        description="Language for the contextual explanation and feedback"
     )
 
-# --- DTO для валідації відповіді від LLM ---
+# --- DTO for validating LLM responses ---
 class HypothesisFeedback(BaseModel):
-    is_correct: bool = Field(..., description="Чи правильна гіпотеза користувача")
-    explanation: str = Field(..., description="Пояснення правильності або помилковості гіпотези")
+    is_correct: bool = Field(..., description="Whether the user's hypothesis is correct")
+    explanation: str = Field(..., description="Explanation of why the hypothesis is correct or not")
 
 class DictionaryResponse(BaseModel):
-    translation: str = Field(..., description="Переклад слова або фрази")
-    contextual_meaning: str = Field(..., description="Пояснення значення у конкретному контексті")
+    translation: str = Field(..., description="Translation of the word or phrase")
+    contextual_meaning: str = Field(..., description="Explanation of the meaning in the specific context")
     hypothesis_feedback: Optional[HypothesisFeedback] = Field(
-        None, 
-        description="Фідбек на гіпотезу (генерується лише якщо гіпотеза була надана)"
+        None,
+        description="Feedback on the hypothesis (generated only if a hypothesis was provided)"
     )
-
-# --- Локальний сервіс (Ollama) ---
+# --- Local AI service (Ollama) ---
 class LocalAPIService:
     def __init__(self):
-        # Налаштування Ollama через змінні оточення
+        # Ollama settings from environment variables
         self.ollama_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/chat")
         self.model_name = os.getenv("OLLAMA_MODEL", "gemma4:latest")
         
-        # Тайм-аут для запитів
+        # Request timeout configuration
         timeout_seconds = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "60.0"))
         self.timeout = httpx.Timeout(timeout_seconds)
 
@@ -104,7 +103,7 @@ Your goal is to analyze vocabulary within a specific reading context.
                 data = response.json()
                 ai_content = data.get("message", {}).get("content", "").strip()
                 
-                # Захист від можливого Markdown-форматування
+                # Protect against possible Markdown formatting in the response
                 if ai_content.startswith("```"):
                     ai_content = ai_content.strip("`").replace("json\n", "", 1)
                 
@@ -113,17 +112,17 @@ Your goal is to analyze vocabulary within a specific reading context.
                 
         except httpx.HTTPStatusError as e:
             raise HTTPException(
-                status_code=502, 
+                status_code=502,
                 detail=f"Ollama API error: {e.response.status_code} - {e.response.text}"
             )
         except httpx.RequestError as e:
             raise HTTPException(
-                status_code=502, 
+                status_code=502,
                 detail=f"Connection failed. Is Ollama running? Error: {str(e)}"
             )
         except ValidationError as e:
             raise HTTPException(
-                status_code=500, 
+                status_code=500,
                 detail=f"AI returned invalid JSON structure: {str(e)}"
             )
         except Exception as e:
@@ -133,17 +132,17 @@ Your goal is to analyze vocabulary within a specific reading context.
             )
 
 
-# --- Хмарний сервіс (Gemini) ---
+# --- Cloud AI service (Gemini) ---
 class CloudAPIService:
     def __init__(self):
         api_key = os.getenv("AI_API_KEY")
         if not api_key:
             raise ValueError("AI_API_KEY is missing in the .env file")
         
-        # Ініціалізація нового офіційного клієнта google-genai
+        # Initialize the new official google-genai client
         self.client = genai.Client(api_key=api_key)
         self.model_name = 'gemini-2.5-flash'
-        print(f"👉 [DEBUG] CloudAPIService initialized with {self.model_name} model via new SDK")
+        print(f"[DEBUG] CloudAPIService initialized with {self.model_name} model via google-genai SDK")
 
     async def explain_word(self, payload: DictionaryPromptPayload) -> dict:
         prompt = f"""
@@ -170,7 +169,7 @@ class CloudAPIService:
         """
 
         try:
-            # Асинхронний виклик через новий SDK
+            # Asynchronous call using the new SDK
             response = await self.client.aio.models.generate_content(
                 model=self.model_name,
                 contents=prompt,

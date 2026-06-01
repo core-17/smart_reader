@@ -3,8 +3,8 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import PostgresDsn
 
-# Визначаємо шлях до кореня проєкту (smart_reader/)
-# __file__ це цей файл (config.py) -> .parent (services/) -> .parent (backend/) -> .parent (smart_reader/)
+# Define project root (smart_reader/)
+# __file__ is this file (config.py) -> .parent (services/) -> .parent (backend/) -> .parent (smart_reader/)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ENV_FILE = BASE_DIR / ".env"
 
@@ -32,7 +32,7 @@ class Setting(BaseSettings):
         return dsn.unicode_string()
 
     model_config = SettingsConfigDict(
-        env_file=ENV_FILE, # Використовуємо абсолютний шлях
+        env_file=ENV_FILE, # Use absolute .env path
         env_file_encoding='utf-8',
         extra="ignore"
     )

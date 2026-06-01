@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import axios from 'axios'
 
 const emit = defineEmits(['switchToLogin'])
-const username = ref('') // Нове поле
+const username = ref('') // New field
 const email = ref('')
 const password = ref('')
 const error = ref('')
@@ -13,57 +13,59 @@ const onRegister = async () => {
   error.value = ''
   isLoading.value = true
   try {
-    await axios.post('http://localhost:8000/auth/register', {
-      username: username.value, // Додаємо у payload
+    await axios.post(`${API_URL}/auth/register`, {
+      username: username.value, // Include username in payload
       email: email.value,
       password: password.value
     })
-    alert('Акаунт успішно створено!')
+    alert('Account successfully created!')
     emit('switchToLogin')
   } catch (err: any) {
-    // Якщо бекенд повертає масив помилок валідації (422), показуємо першу, інакше detail
-    if (err.response?.status === 422) {
-       error.value = "Перевірте правильність введених даних."
-    } else {
-       error.value = err.response?.data?.detail || 'Помилка реєстрації'
-    }
+     // If backend returns validation errors (422), show a generic hint or detail
+     if (err.response?.status === 422) {
+       error.value = "Please check the provided data."
+     } else {
+       error.value = err.response?.data?.detail || 'Registration error'
+     }
   } finally {
     isLoading.value = false
   }
 }
+import { API_URL } from '../config'
+
 </script>
 
 <template>
   <div class="auth-box">
     <div class="auth-card">
-      <h2>Реєстрація</h2>
+      <h2>Register</h2>
       <form @submit.prevent="onRegister">
         <div class="form-group">
-          <label>Нікнейм</label>
-          <input v-model="username" type="text" required placeholder="Придумайте нікнейм" />
+          <label>Username</label>
+          <input v-model="username" type="text" required placeholder="Choose a username" />
         </div>
         <div class="form-group">
           <label>Email</label>
-          <input v-model="email" type="email" required placeholder="Введіть email" />
+          <input v-model="email" type="email" required placeholder="Enter your email" />
         </div>
         <div class="form-group">
-          <label>Пароль</label>
-          <input v-model="password" type="password" required placeholder="Створіть пароль" />
+          <label>Password</label>
+          <input v-model="password" type="password" required placeholder="Create a password" />
         </div>
         <p v-if="error" class="err-text">{{ error }}</p>
-        <button type="submit" :disabled="isLoading" class="submit-btn">
-          {{ isLoading ? 'Створення...' : 'Створити акаунт' }}
+          <button type="submit" :disabled="isLoading" class="submit-btn">
+          {{ isLoading ? 'Creating...' : 'Create account' }}
         </button>
       </form>
       <p class="footer-text">
-        Вже маєте акаунт? <a @click="emit('switchToLogin')">Увійти</a>
+        Already have an account? <a @click="emit('switchToLogin')">Sign in</a>
       </p>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Стилі залишаються без змін */
+/* Styles unchanged */
 .auth-box { height: 100vh; display: flex; align-items: center; justify-content: center; }
 .auth-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 320px; }
 .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }

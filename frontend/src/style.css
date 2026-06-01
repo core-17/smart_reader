@@ -165,7 +165,7 @@ code {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  overflow: hidden; /* Запобігає появі зовнішніх скролбарів */
+  overflow: hidden; /* Prevents outer scrollbars from appearing */
 }
 
 #center {

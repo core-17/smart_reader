@@ -1,15 +1,15 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
-from services.config import settings  # перевір, щоб шлях був саме такий
+from services.config import settings  # ensure the import path is correct
 
-# 1. Створюємо двигун
+# 1. Create the async engine
 engine = create_async_engine(
     str(settings.DATABASE_URL),
     echo=True,
     future=True
 )
 
-# 2. Фабрика сесій
+# 2. Session factory
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
@@ -17,11 +17,11 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False
 )
 
-# 3. Базовий клас
+# 3. Base declarative class
 class Base(DeclarativeBase):
     pass
 
-# --- ОСЬ ЦІЄЇ ФУНКЦІЇ У ТЕБЕ НЕ ВИСТАЧАЄ ---
+# Database session dependency for FastAPI endpoints
 async def get_db():
     async with AsyncSessionLocal() as session:
         try:
