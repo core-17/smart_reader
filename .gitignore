@@ -1,0 +1,39 @@
+# Байткод і кеш Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Віртуальне оточення uv / Python
+.venv/
+env/
+venv/
+ENV/
+
+# Змінні оточення та секрети
+.env
+.env.local
+*.env
+
+# Кеш інструментів розробки та лінтерів
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Збірка, дистрибутиви та метадані пакунків
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# IDE та редактори коду
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Бази даних / локальні сховища
+*.sqlite3
+*.db

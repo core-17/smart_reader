@@ -1,0 +1,23 @@
+[project]
+name = "smart-reader"
+version = "0.1.0"
+description = "Smart Reader project"
+readme = "README.md"
+authors = [
+    { name = "core-17", email = "tsirukbogdan@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+smart-reader = "smart_reader.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ruff",
+    "pytest",
+]
