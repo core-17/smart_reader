@@ -1,0 +1,14 @@
+{
+  "identities": [
+    {
+      "name": "smart_reader_admin",
+      "credentials": [
+        {
+          "accessKey": "smartreader_key",
+          "secretKey": "smartreader_secret"
+        }
+      ],
+      "actions": ["Admin", "Read", "List", "Tagging", "Write"]
+    }
+  ]
+}

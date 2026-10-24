@@ -7,7 +7,17 @@ authors = [
     { name = "core-17", email = "tsirukbogdan@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "boto3>=1.43.118",
+    "fastapi>=0.162.0",
+    "pillow>=13.0.0",
+    "psycopg[binary]>=3.3.6",
+    "pymupdf>=1.24.0,<2.0.0",
+    "pytesseract>=0.3.13",
+    "python-multipart>=0.0.32",
+    "sqlalchemy>=2.1.6",
+    "uvicorn>=0.54.0",
+]
 
 [project.scripts]
 smart-reader = "smart_reader.main:main"
@@ -21,3 +31,5 @@ dev = [
     "ruff",
     "pytest",
 ]
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
