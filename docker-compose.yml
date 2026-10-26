@@ -1,6 +1,9 @@
+# Значення підставляються з файлу .env у корені проєкту (див. .env.example)
+name: smart-reader
+
 services:
   nginx:
-    image: nginx:alpine
+    image: nginx:1.27-alpine
     container_name: smart_reader_proxy
     restart: unless-stopped
     network_mode: "host"
@@ -12,15 +15,21 @@ services:
     container_name: smart_reader_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: smartreader
-      POSTGRES_PASSWORD: smartreader_password
-      POSTGRES_DB: smartreader_db
+      POSTGRES_USER: ${POSTGRES_USER:-smartreader}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Задайте POSTGRES_PASSWORD у .env}
+      POSTGRES_DB: ${POSTGRES_DB:-smartreader_db}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   seaweedfs:
+    # Зафіксуйте конкретну версію: візьміть поточну з `docker inspect smart_reader_s3`
     image: chrislusf/seaweedfs:latest
     container_name: smart_reader_s3
     restart: unless-stopped

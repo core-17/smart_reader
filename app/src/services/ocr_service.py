@@ -1,16 +1,24 @@
+import logging
+from functools import lru_cache
+
 import pymupdf
 import pytesseract
-from PIL import Image, ImageOps, ImageFilter
+from PIL import Image, ImageFilter, ImageOps
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_LANGS = {"eng", "ukr", "ukr+eng", "eng+ukr"}
+TESSERACT_CONFIG = "--oem 3 --psm 3"
+MIN_TEXT_CHARS = 20  # сторінка з меншою кількістю тексту вважається сканом
 
 
+@lru_cache(maxsize=1)
 def get_available_ocr_languages() -> list[str]:
     try:
-        langs = pytesseract.get_languages(config="")
-        return [l for l in langs if l != "osd"]
+        return [lang for lang in pytesseract.get_languages(config="") if lang != "osd"]
     except Exception:
-        return ["eng", "ukr"]
+        logger.warning("Tesseract недоступний", exc_info=True)
+        return []
 
 
 def preprocess_image_for_ocr(img: Image.Image) -> Image.Image:
@@ -21,32 +29,34 @@ def preprocess_image_for_ocr(img: Image.Image) -> Image.Image:
 
 def process_pdf_with_ocr(pdf_bytes: bytes, lang: str = "ukr+eng", dpi: int = 300) -> bytes:
     if lang not in ALLOWED_LANGS:
-        lang = "ukr+eng"
+        raise ValueError(f"Unsupported OCR language: {lang}")
 
     src_doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
     out_doc = pymupdf.open()
-    tesseract_config = r"--oem 3 --psm 3"
 
     try:
-        for page_num in range(len(src_doc)):
-            page = src_doc[page_num]
-            existing_text = page.get_text().strip()
+        for page_index in range(len(src_doc)):
+            page = src_doc[page_index]
 
-            if len(existing_text) > 20:
-                out_doc.insert_pdf(src_doc, from_page=page_num, to_page=page_num)
-            else:
-                pix = page.get_pixmap(dpi=dpi)
-                raw_img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                clean_img = preprocess_image_for_ocr(raw_img)
+            if len(page.get_text().strip()) > MIN_TEXT_CHARS:
+                out_doc.insert_pdf(src_doc, from_page=page_index, to_page=page_index)
+                continue
 
-                ocr_pdf_bytes = pytesseract.image_to_pdf_or_hocr(
-                    clean_img,
-                    lang=lang,
-                    extension="pdf",
-                    config=tesseract_config,
-                )
-                ocr_page_doc = pymupdf.open("pdf", ocr_pdf_bytes)
+            # csRGB + alpha=False гарантує 3 канали, незалежно від колірного простору сторінки
+            pix = page.get_pixmap(dpi=dpi, colorspace=pymupdf.csRGB, alpha=False)
+            raw_img = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+            clean_img = preprocess_image_for_ocr(raw_img)
+
+            ocr_pdf_bytes = pytesseract.image_to_pdf_or_hocr(
+                clean_img,
+                lang=lang,
+                extension="pdf",
+                config=TESSERACT_CONFIG,
+            )
+            ocr_page_doc = pymupdf.open(stream=ocr_pdf_bytes, filetype="pdf")
+            try:
                 out_doc.insert_pdf(ocr_page_doc)
+            finally:
                 ocr_page_doc.close()
 
         return out_doc.tobytes(garbage=4, deflate=True)
