@@ -76,3 +76,6 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+
+run_dev.sh

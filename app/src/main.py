@@ -12,6 +12,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
+from services.ollama_api import query_ollama
 from core.database import Book, LexiconEntry, PromptTemplate, SessionLocal, User, init_db
 from services.auth_service import hash_password, verify_password
 from services.ocr_service import ALLOWED_LANGS, get_available_ocr_languages, process_pdf_with_ocr
@@ -361,11 +362,18 @@ def analyze_text(payload: TextActionRequest):
         prompt_obj = db.query(PromptTemplate).filter_by(action_key=payload.action).first()
         config = (prompt_obj.config if prompt_obj else None) or {}
         system_instruction = config.get("system_prompt", DEFAULT_SYSTEM_PROMPT)
+        temperature = float(config.get("temperature", 0.2))
 
-        generated_text = (
-            f"[Промт із JSONB: '{system_instruction}']\n\n"
-            f"Розбір для «{payload.text}» (збережено в PostgreSQL)."
-        )
+        try:
+            generated_text = query_ollama(
+                system_prompt=system_instruction,
+                user_text=payload.text,
+                context=payload.context,
+                temperature=temperature,
+            )
+        except RuntimeError as e:
+            raise HTTPException(status_code=503, detail=str(e))
+
         ai_data = {
             "text": generated_text,
             "prompt_used": system_instruction,
