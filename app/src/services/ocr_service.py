@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 ALLOWED_LANGS = {"eng", "ukr", "ukr+eng", "eng+ukr"}
 TESSERACT_CONFIG = "--oem 3 --psm 3"
-MIN_TEXT_CHARS = 20  # сторінка з меншою кількістю тексту вважається сканом
+MIN_TEXT_CHARS = 20
 
 
 @lru_cache(maxsize=1)
@@ -42,7 +42,6 @@ def process_pdf_with_ocr(pdf_bytes: bytes, lang: str = "ukr+eng", dpi: int = 300
                 out_doc.insert_pdf(src_doc, from_page=page_index, to_page=page_index)
                 continue
 
-            # csRGB + alpha=False гарантує 3 канали, незалежно від колірного простору сторінки
             pix = page.get_pixmap(dpi=dpi, colorspace=pymupdf.csRGB, alpha=False)
             raw_img = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
             clean_img = preprocess_image_for_ocr(raw_img)

@@ -6,6 +6,10 @@ export interface BookItem {
   has_ocr: boolean
   ocr_status: 'not_started' | 'processing' | 'completed' | 'failed'
   ocr_error?: string | null
+  has_rag: boolean
+  rag_status: 'not_indexed' | 'indexing' | 'completed' | 'failed'
+  rag_progress: number
+  rag_error?: string | null
   is_public: boolean
   user_id: number | null
   is_mine: boolean
@@ -18,7 +22,6 @@ export function useBooks(getUserId: () => number | null) {
   const pdfSourceUrl = ref<string | null>(null)
   const isUploading = ref(false)
 
-  // 1. Завантаження викликається тільки при старті або після конкретних дій
   const fetchBooks = async () => {
     try {
       const uid = getUserId()
@@ -55,7 +58,6 @@ export function useBooks(getUserId: () => number | null) {
     pdfSourceUrl.value = `/api/books/${activeBook.value.id}/pdf?version=${selectedVersion.value}&t=${Date.now()}`
   }
 
-  // 2. Локальний таймер для конкретної книги: зупиняється, щойно OCR готовий
   const pollSingleBookStatus = (bookId: number) => {
     const timer = setInterval(async () => {
       try {
@@ -71,6 +73,11 @@ export function useBooks(getUserId: () => number | null) {
           target.has_ocr = data.has_ocr
           target.ocr_error = data.ocr_error
         }
+        if (activeBook.value?.id === bookId) {
+          activeBook.value.ocr_status = data.ocr_status
+          activeBook.value.has_ocr = data.has_ocr
+          activeBook.value.ocr_error = data.ocr_error
+        }
         if (data.ocr_status === 'completed' || data.ocr_status === 'failed') {
           clearInterval(timer)
           if (activeBook.value?.id === bookId && data.ocr_status === 'completed') {
@@ -84,6 +91,37 @@ export function useBooks(getUserId: () => number | null) {
     }, 3000)
   }
 
+  const pollRagStatus = (bookId: number) => {
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/books/${bookId}/rag/status`)
+        if (!res.ok) {
+          clearInterval(timer)
+          return
+        }
+        const data = await res.json()
+        const target = books.value.find((b) => b.id === bookId)
+        if (target) {
+          target.rag_status = data.rag_status
+          target.rag_progress = data.rag_progress
+          target.has_rag = data.has_rag
+          target.rag_error = data.rag_error
+        }
+        if (activeBook.value?.id === bookId) {
+          activeBook.value.rag_status = data.rag_status
+          activeBook.value.rag_progress = data.rag_progress
+          activeBook.value.has_rag = data.has_rag
+          activeBook.value.rag_error = data.rag_error
+        }
+        if (data.rag_status === 'completed' || data.rag_status === 'failed') {
+          clearInterval(timer)
+        }
+      } catch {
+        clearInterval(timer)
+      }
+    }, 1500)
+  }
+
   const triggerOcr = async (book: BookItem, lang: string) => {
     const formData = new FormData()
     formData.append('lang', lang)
@@ -95,11 +133,28 @@ export function useBooks(getUserId: () => number | null) {
       })
       if (res.ok) {
         book.ocr_status = 'processing'
-        // Запускаємо відстеження тільки для цієї книги
         pollSingleBookStatus(book.id)
       }
-    } catch (err) {
+    } catch {
       alert('Помилка виклику OCR')
+    }
+  }
+
+  const triggerRagIndex = async (book: BookItem) => {
+    try {
+      const res = await fetch(`/api/books/${book.id}/rag/index`, {
+        method: 'POST',
+      })
+      if (res.ok) {
+        book.rag_status = 'indexing'
+        book.rag_progress = 5
+        pollRagStatus(book.id)
+      } else {
+        const err = await res.json()
+        alert(err.detail || 'Не вдалося запустити індексацію RAG')
+      }
+    } catch {
+      alert('Помилка запуску RAG-індексації')
     }
   }
 
@@ -151,6 +206,7 @@ export function useBooks(getUserId: () => number | null) {
     selectBook,
     toggleVersion,
     triggerOcr,
+    triggerRagIndex,
     uploadBook,
     deleteBook,
   }

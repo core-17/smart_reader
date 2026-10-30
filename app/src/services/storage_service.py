@@ -1,25 +1,22 @@
 import logging
-import os
 
 import boto3
 from botocore.client import Config
 from botocore.exceptions import ClientError
 
-logger = logging.getLogger(__name__)
+from core.config import settings
 
-S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://127.0.0.1:8333")
-S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "smartreader_key")
-S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "smartreader_secret")
-BUCKET_NAME = os.getenv("S3_BUCKET", "smart-reader-books")
+logger = logging.getLogger(__name__)
 
 s3_client = boto3.client(
     "s3",
-    endpoint_url=S3_ENDPOINT,
-    aws_access_key_id=S3_ACCESS_KEY,
-    aws_secret_access_key=S3_SECRET_KEY,
+    endpoint_url=settings.S3_ENDPOINT,
+    aws_access_key_id=settings.S3_ACCESS_KEY,
+    aws_secret_access_key=settings.S3_SECRET_KEY,
     config=Config(signature_version="s3v4"),
-    region_name="us-east-1",
+    region_name=settings.S3_REGION,
 )
+BUCKET_NAME = settings.S3_BUCKET
 
 
 def init_s3_bucket() -> None:
@@ -32,7 +29,7 @@ def init_s3_bucket() -> None:
         except Exception:
             logger.exception("Не вдалося створити bucket %s", BUCKET_NAME)
     except Exception:
-        logger.exception("S3 недоступний за адресою %s", S3_ENDPOINT)
+        logger.exception("S3 недоступний за адресою %s", settings.S3_ENDPOINT)
 
 
 def upload_pdf_to_s3(key: str, data: bytes) -> str:

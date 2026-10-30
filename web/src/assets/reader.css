@@ -1,117 +1,402 @@
-/* Основна 3-колонкова розмітка */
-.reader-layout {
-  display: grid;
-  grid-template-columns: 300px 1.4fr 1fr;
-  gap: 16px;
-  width: 100vw;
-  height: 100vh;
-  padding: 12px;
-  box-sizing: border-box;
-}
-
-/* --- 1. Ліва панель: Бібліотека книг --- */
-.sidebar-books {
+.app-shell {
   display: flex;
   flex-direction: column;
-  background: var(--color-background);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  padding: 14px;
+  width: 100vw;
+  height: 100vh;
+  background: #0f172a;
+  color: #e2e8f0;
   overflow: hidden;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.auth-header {
+/* --- 1. ВЕРХНІЙ ХЕДЕР --- */
+.top-navbar {
+  height: 54px;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--color-background-mute);
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+  z-index: 40;
 }
 
-.user-tag {
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.books-drawer-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #334155;
+  color: #f8fafc;
+  border: 1px solid #475569;
+  padding: 6px 12px;
+  border-radius: 8px;
   font-size: 13px;
-  font-weight: 600;
-  color: var(--color-heading);
-}
-
-.auth-btn {
-  background: var(--color-background-mute);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
 }
 
-.library-header {
+.books-drawer-btn:hover,
+.books-drawer-btn.active {
+  background: #3b82f6;
+  border-color: #60a5fa;
+}
+
+.books-count-pill {
+  background: rgba(15, 23, 42, 0.45);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.brand-title {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-}
-
-.library-header h3 {
-  margin: 0;
-  font-size: 15px;
-  color: var(--color-heading);
+  gap: 6px;
   font-weight: 600;
+  font-size: 15px;
+  color: #f8fafc;
 }
 
-.upload-box {
+.navbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 12px;
+}
+
+.current-book-pill {
+  background: #0f172a;
+  border: 1px solid #334155;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  max-width: 380px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.current-book-pill.muted {
+  color: #64748b;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Кружечок акаунта та спадне меню */
+.account-menu-wrapper {
+  position: relative;
+}
+
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #ffffff;
+  border: 2px solid #93c5fd;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.avatar-circle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+}
+
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  padding: 8px;
+  z-index: 100;
+}
+
+.account-dropdown-header {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px;
+}
+
+.account-dropdown-header strong {
+  font-size: 14px;
+  color: #f8fafc;
+}
+
+.account-dropdown-header span {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #334155;
+  margin: 6px 0;
+}
+
+.dropdown-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #e2e8f0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.upload-btn {
-  position: relative;
-  background: var(--color-primary);
-  color: #ffffff;
-  padding: 5px 9px;
-  border-radius: var(--radius-sm);
+.dropdown-item:hover {
+  background: #334155;
+}
+
+.dropdown-item.danger {
+  color: #f87171;
+}
+
+.dropdown-item.danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+/* --- 2. НИЖНІЙ ПІД-ХЕДЕР --- */
+.sub-header {
+  height: 42px;
+  background: #162032;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+  z-index: 30;
+}
+
+.sub-header-left,
+.sub-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.version-toggle {
+  display: flex;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.version-toggle button {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  padding: 4px 10px;
   font-size: 12px;
   cursor: pointer;
+}
+
+.version-toggle button.active {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.version-toggle button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sub-action-btn {
+  background: #1e293b;
+  border: 1px solid #475569;
+  color: #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sub-action-btn.rag-btn {
+  border-color: #8b5cf6;
+  color: #ddd6fe;
+}
+
+.sub-action-btn:hover:not(:disabled) {
+  background: #334155;
+}
+
+.rag-ready-badge {
+  font-size: 12px;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.toggle-ai-btn {
+  background: #1e293b;
+  border: 1px solid #475569;
+  color: #e2e8f0;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 500;
+  cursor: pointer;
+}
+
+.toggle-ai-btn.active {
+  background: #2563eb;
+  border-color: #60a5fa;
+  color: #ffffff;
+}
+
+/* --- 3. РОБОЧА ОБЛАСТЬ ТА ВИЇЗНЕ МЕНЮ КНИГ --- */
+.workspace-body {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.55);
+  z-index: 45;
+}
+
+.books-drawer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 310px;
+  background: #1e293b;
+  border-right: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.22s ease;
+  z-index: 50;
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.45);
+}
+
+.books-drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #334155;
+}
+
+.drawer-header h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.close-icon-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.drawer-upload-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #0f172a;
+  border-bottom: 1px solid #334155;
+}
+
+.public-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #cbd5e1;
+  cursor: pointer;
+}
+
+.upload-btn {
+  background: #3b82f6;
+  color: #ffffff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
 }
 
 .upload-btn input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
+  display: none;
 }
 
 .books-list {
   flex: 1;
   overflow-y: auto;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .book-card {
-  padding: 10px;
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  cursor: pointer;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  transition: border-color 0.15s, background-color 0.15s;
+  justify-content: space-between;
+  padding: 10px;
+  border-radius: 8px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.book-card:hover {
+  border-color: #64748b;
 }
 
 .book-card.active {
-  background: #eff6ff;
   border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.12);
 }
 
 .book-info {
   display: flex;
   flex-direction: column;
-  max-width: 175px;
+  gap: 4px;
+  overflow: hidden;
 }
 
 .book-title {
@@ -120,221 +405,636 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--color-heading);
 }
 
 .book-tags {
   display: flex;
   gap: 6px;
-  margin-top: 4px;
+  align-items: center;
+  font-size: 11px;
 }
 
-.access-tag {
-  font-size: 9px;
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: var(--color-border-subtle);
-  color: var(--color-text-muted);
-}
-.access-tag.public { 
-  background: #fef08a; 
-  color: #854d0e; 
-}
-
-.ocr-status-tag {
+.status-pill {
+  padding: 1px 5px;
+  border-radius: 4px;
   font-size: 10px;
   font-weight: 600;
 }
-.ocr-status-tag.completed { color: var(--color-success); }
-.ocr-status-tag.processing { color: var(--color-warning); }
-.ocr-status-tag.failed { color: var(--color-danger); }
-.ocr-status-tag.not_started { color: var(--color-text-muted); }
 
-.mini-btn {
-  background: var(--color-border-subtle);
+.status-pill.ocr {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.status-pill.rag {
+  background: rgba(139, 92, 246, 0.25);
+  color: #c4b5fd;
+}
+
+.mini-btn.delete {
+  background: none;
   border: none;
-  padding: 4px 6px;
-  border-radius: var(--radius-sm);
+  color: #f87171;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 14px;
 }
-.mini-btn.delete { color: var(--color-danger); }
 
-/* --- 2. Центральна область: PDF-читач --- */
-.pdf-section {
+/* --- 4. ЦЕНТРАЛЬНА ОБЛАСТЬ PDF --- */
+.pdf-viewport {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
-  flex-direction: column;
-  background: #1e1e2e;
-  border: 1px solid #333;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  position: relative;
-}
-
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 14px;
-  background: var(--color-background);
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.toolbar-book-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-}
-
-.version-toggle button {
-  padding: 4px 10px;
-  font-size: 12px;
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
-  cursor: pointer;
-}
-.version-toggle button:first-child { 
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm); 
-}
-.version-toggle button:last-child { 
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0; 
-  border-left: none; 
-}
-.version-toggle button.active {
-  background: var(--color-primary);
-  color: #ffffff;
-  border-color: var(--color-primary);
-}
-
-.ocr-action-bar {
-  display: flex;
-  gap: 6px;
-}
-
-.lang-select {
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
-  color: var(--color-heading);
-}
-
-.ocr-btn {
-  background: var(--color-success);
-  color: #ffffff;
-  border: none;
-  padding: 5px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  cursor: pointer;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 16px;
+  background: #0b1120;
 }
 
 .pdf-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 
-.placeholder {
-  color: var(--color-text-muted);
-  margin-top: 120px;
+.empty-reader-state {
+  margin-top: 12vh;
+  display: flex;
+  justify-content: center;
 }
 
-/* Спливаючий попап дій над виділеним текстом */
+.empty-reader-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 380px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 38px;
+}
+
+.primary-btn {
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: #2563eb;
+}
+
+/* Спливаючий попап над виділеним текстом книги */
 .selection-popup {
   position: fixed;
-  z-index: 9999;
-  background: #0f172a;
-  padding: 6px;
-  border-radius: var(--radius-md);
-  display: flex;
-  gap: 6px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   transform: translateX(-50%);
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 4px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 90;
 }
 
 .selection-popup button {
-  background: #1e293b;
-  color: #ffffff;
+  background: none;
   border: none;
-  padding: 5px 10px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
+  color: #f8fafc;
+  padding: 6px 10px;
+  border-radius: 6px;
   font-size: 12px;
-  transition: background 0.15s;
-}
-.selection-popup button:hover { 
-  background: #334155; 
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-/* --- 3. Права панель: Аналіз ШІ --- */
-.sidebar-analysis {
-  background: var(--color-background);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
+.selection-popup button:hover {
+  background: #3b82f6;
+}
+
+/* --- 5. ПРАВА ПАНЕЛЬ ШІ --- */
+.ai-sidebar {
+  width: 380px;
+  max-width: 45vw;
+  background: #1e293b;
+  border-left: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.ai-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: #0f172a;
+  border-bottom: 1px solid #334155;
+}
+
+.ai-tabs button {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #94a3b8;
+  padding: 11px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ai-tabs button.active {
+  color: #60a5fa;
+  border-bottom-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.ai-tab-body {
+  flex: 1;
   padding: 14px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.sidebar-analysis h3 {
-  font-size: 14px;
-  margin: 0 0 6px 0;
-  color: var(--color-heading);
+.section-label {
+  font-size: 12px;
   font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.selected-box, 
-.response-box {
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border-subtle);
-  padding: 10px;
-  border-radius: var(--radius-md);
-  min-height: 70px;
-  margin-bottom: 14px;
+.selected-box {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px 12px;
   font-size: 13px;
-  white-space: pre-wrap;
-  color: var(--color-text);
+  color: #f8fafc;
+  max-height: 110px;
+  overflow-y: auto;
+  line-height: 1.45;
+}
+
+.quick-action-row {
+  display: flex;
+  gap: 6px;
+}
+
+.quick-action-row button {
+  flex: 1;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.quick-action-row button.active {
+  border-color: #3b82f6;
+  color: #60a5fa;
 }
 
 .response-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  justify-content: space-between;
 }
 
 .badge {
   font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
 }
-.badge.cached { 
-  background: #dcfce7; 
-  color: #166534; 
+
+.badge.cached {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
 }
-.badge.fresh { 
-  background: #dbeafe; 
-  color: #1e40af; 
+
+.badge.fresh {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+
+.response-box {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  min-height: 140px;
 }
 
 .refresh-btn {
-  width: 100%;
-  padding: 8px;
-  background: var(--color-background-mute);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: #334155;
+  color: #f8fafc;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
   cursor: pointer;
+}
+
+/* --- АНІМАЦІЯ РОБОТИ ШІ --- */
+.ai-working-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid #3b82f6;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.18);
+}
+
+.ai-working-card.compact {
+  padding: 10px 12px;
+}
+
+.ai-pulse-orb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #60a5fa, #3b82f6, #1d4ed8);
+  flex-shrink: 0;
+  animation: pulseOrb 1.4s infinite ease-in-out;
+}
+
+.ai-working-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ai-working-info strong {
+  font-size: 13px;
+  color: #93c5fd;
+}
+
+.ai-working-info span {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.ai-wave-bars {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.ai-wave-bars span {
+  width: 6px;
+  height: 12px;
+  background: #60a5fa;
+  border-radius: 3px;
+  animation: waveBar 1s infinite ease-in-out;
+}
+
+.ai-wave-bars span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.ai-wave-bars span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.ai-wave-bars span:nth-child(4) {
+  animation-delay: 0.45s;
+}
+
+@keyframes pulseOrb {
+  0%, 100% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes waveBar {
+  0%, 100% {
+    transform: scaleY(0.5);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1.2);
+    opacity: 1;
+  }
+}
+
+/* --- ІСТОРІЯ ЗАПИТІВ --- */
+.history-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text-danger-btn {
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.history-card:hover {
+  border-color: #3b82f6;
+}
+
+.history-card-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.history-phrase {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin-bottom: 4px;
+}
+
+.history-preview {
+  font-size: 12px;
+  color: #94a3b8;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --- ЧАТ ПО КНИЗІ (RAG) --- */
+.chat-tab-body {
+  overflow: hidden;
+}
+
+.chat-sessions-bar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.chat-session-select {
+  flex: 1;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.new-chat-btn {
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
-  transition: background 0.15s;
+  cursor: pointer;
+  white-space: nowrap;
 }
-.refresh-btn:hover {
-  filter: brightness(0.96);
+
+.delete-chat-btn {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f87171;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.rag-setup-box {
+  background: #0f172a;
+  border: 1px dashed #6366f1;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+}
+
+.rag-setup-box h4 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+}
+
+.rag-setup-box p {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.rag-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.rag-progress-bar {
+  height: 8px;
+  background: #1e293b;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.rag-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  transition: width 0.3s ease;
+}
+
+.chat-messages-area {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.chat-empty-prompt {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 12.5px;
+  margin-top: 24px;
+}
+
+.chat-bubble {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.chat-bubble.user {
+  background: #2563eb;
+  color: #ffffff;
+  align-self: flex-end;
+  max-width: 88%;
+}
+
+.chat-bubble.assistant {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  align-self: flex-start;
+  width: 100%;
+}
+
+.chat-bubble-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  opacity: 0.75;
+  margin-bottom: 4px;
+}
+
+.chat-bubble-text {
+  white-space: pre-wrap;
+}
+
+.chat-sources {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #1e293b;
+  font-size: 11px;
+  color: #93c5fd;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #334155;
+}
+
+.chat-input-row input {
+  flex: 1;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.chat-input-row button {
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  padding: 0 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.chat-input-row button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* --- МОДАЛЬНЕ ВІКНО НАЛАШТУВАНЬ --- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.settings-modal {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.settings-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.setting-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.setting-field select,
+.setting-field input[type="number"] {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 7px 10px;
+  border-radius: 6px;
+}
+
+.setting-field span {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.empty-hint {
+  font-size: 12.5px;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 20px;
 }
